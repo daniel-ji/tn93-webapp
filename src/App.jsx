@@ -267,7 +267,7 @@ export class App extends Component {
 	render() {
 		return (
 			<div className="app">
-				<h2 className="mt-5 mb-2 w-100 text-center">TN-93 Web App</h2>
+				<h2 className="mt-5 mb-2 w-100 text-center">TN93 Web App</h2>
 				<p className="mb-5 w-100 text-center">A web implementation of <a href="https://github.com/veg/tn93" target="_blank" rel="noreferrer">tn93</a>. Created with Biowasm.</p>
 				<div id="content">
 					<div id="input" className={`${this.state.expandedContainer === 'input' && 'full-width-container'} ${this.state.expandedContainer === 'output' && 'd-none'}`}>
