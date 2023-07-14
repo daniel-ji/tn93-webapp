@@ -1,3 +1,5 @@
+export const INPUT_FILE = "input.txt";
+export const OUTPUT_FILE = "output.txt";
 export const OUTPUT_ID = "output-console";
 
 export const LOG = (output) => {

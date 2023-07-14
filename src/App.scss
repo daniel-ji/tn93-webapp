@@ -25,6 +25,10 @@ input::placeholder {
 		#input-form {
 			border: 2px solid black;
 			border-radius: 4px;
+
+			#optional-arguments {
+				cursor: pointer;
+			}
 		}
 	}
 
@@ -36,6 +40,20 @@ input::placeholder {
 			border-radius: 4px;
 			height: 50vh;
 			max-height: 200vh;
+			white-space: pre;
+			overflow-wrap: normal;
+			overflow-x: scroll;
+		}
+	}
+
+	#input-header, #output-header {
+		display: inline-flex;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
+
+		i {
+			cursor: pointer;
 		}
 	}
 }
@@ -46,4 +64,8 @@ p {
 
 .text-disabled {
 	color: #999;
+}
+
+.full-width-container {
+	width: 100% !important;
 }
