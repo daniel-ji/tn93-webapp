@@ -1,0 +1,49 @@
+@font-face {
+	font-family: 'Roboto Mono';
+	src: url('./assets/RobotoMono-VariableFont_wght.ttf');
+}
+
+body {
+	margin-bottom: 10vh;
+	font-family: 'Roboto Mono';
+	font-size: 0.9rem;
+}
+
+input::placeholder {
+	font-size: 0.9rem;
+}
+
+#content {
+	display: inline-flex;
+	justify-content: space-between;
+	margin-left: 5%;
+	width: 90%;
+
+	#input {
+		width: 47.5%;
+
+		#input-form {
+			border: 2px solid black;
+			border-radius: 4px;
+		}
+	}
+
+	#output {
+		width: 47.5%;
+
+		#output-console {
+			border: 2px solid black;
+			border-radius: 4px;
+			height: 50vh;
+			max-height: 200vh;
+		}
+	}
+}
+
+p {
+	margin: 0;
+}
+
+.text-disabled {
+	color: #999;
+}
