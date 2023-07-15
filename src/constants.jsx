@@ -1,5 +1,6 @@
-export const INPUT_FILE = "input.txt";
-export const OUTPUT_FILE = "output.txt";
+export const EXAMPLE_FILE_NAME = "example.fas";
+export const EXAMPLE_FILE_OUTPUT_NAME = "example_pairwise_distances.txt";
+export const SECOND_INPUT_FILE_NAME = "second_file.fas";
 export const OUTPUT_ID = "output-console";
 
 export const LOG = (output) => {

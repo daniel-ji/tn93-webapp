@@ -1,10 +1,8 @@
-// TODO: support gzip input/output? 
-
 import { Component, Fragment } from 'react'
-import './App.scss'
+import Pako from 'pako';
 
-import { LOG } from './constants';
-import { INPUT_FILE, OUTPUT_FILE } from './constants';
+import { LOG, EXAMPLE_FILE_NAME, EXAMPLE_FILE_OUTPUT_NAME } from './constants';
+import './App.scss'
 
 export class App extends Component {
 	constructor(props) {
@@ -47,6 +45,8 @@ export class App extends Component {
 
 			inputChanged: false,
 			tn93Done: false,
+			gzipOutput: true,
+			outputFileName: undefined,
 
 			expandedContainer: undefined,
 			optionalOpen: false,
@@ -198,6 +198,10 @@ export class App extends Component {
 		});
 	}
 
+	toggleGzipOutput = () => {
+		this.setState(prevState => { return { gzipOutput: !prevState.gzipOutput } })
+	}
+
 	runTN93 = async () => {
 		const CLI = this.state.CLI;
 		const startTime = performance.now();
@@ -264,24 +268,54 @@ export class App extends Component {
 			return;
 		}
 
+		await this.deleteOldFiles();
 		this.setState({ tn93Done: false, inputChanged: false })
 
-		// mount input file
+		// mount input file and setup output file
+		let outputFileName;
+		let cleanInputFileName;
+
 		if (this.state.file === 'EXAMPLE_DATA') {
-			LOG("Using example data.")
-			CLI.fs.writeFile(INPUT_FILE, this.state.exampleData);
+			LOG("Using example data...")
+			CLI.fs.writeFile(EXAMPLE_FILE_NAME, this.state.exampleData);
+			cleanInputFileName = EXAMPLE_FILE_NAME;
+			outputFileName = EXAMPLE_FILE_OUTPUT_NAME;
 		} else {
-			const inputFileData = await this.fileReaderReadFile(this.state.file);
-			CLI.fs.writeFile(INPUT_FILE, inputFileData);
+			LOG("Reading input fasta sequence file...")
+			let inputFileData = await this.fileReaderReadFile(this.state.file);
+			if (this.state.file.name.endsWith(".gz")) {
+				try {
+					inputFileData = Pako.ungzip(inputFileData);
+				} catch (err) {
+					LOG("Error unzipping input fasta sequence file " + this.state.file.name + ".");
+					return;
+				}
+			}
+
+			cleanInputFileName = this.state.file.name.replace(".gz", "").replace(" ", "_");
+			CLI.fs.writeFile(cleanInputFileName, inputFileData);
+			outputFileName = (cleanInputFileName.substring(0, cleanInputFileName.indexOf('.')) || cleanInputFileName) + "_pariwise_distances.txt";
 		}
+		this.setState({ outputFileName })
 
 		// mount second input file
 		if (this.state.secondFile) {
-			const secondFileData = await this.fileReaderReadFile(this.state.secondFile);
-			CLI.fs.writeFile(SECOND_INPUT_FILE, secondFileData);
+			LOG("Reading second fasta sequence file...")
+			let secondFileData = await this.fileReaderReadFile(this.state.secondFile);
+			if (this.state.secondFile.name.endsWith(".gz")) {
+				try {
+					secondFileData = Pako.ungzip(secondFileData);
+				} catch (err) {
+					LOG("Error unzipping second fasta sequence file " + this.state.secondFile.name + ".");
+					return;
+				}
+			}
+
+			CLI.fs.writeFile(this.state.secondFile.name.replace(".gz", "").replace(" ", "_"), secondFileData);
 		}
 
-		let command = "tn93 -o " + OUTPUT_FILE;
+		// TODO: better extension? 
+		let command = "tn93 -o " + outputFileName; 
 
 		// add threshold
 		command += " -t " + (this.state.threshold === "" ? "1.0" : this.state.threshold);
@@ -333,22 +367,34 @@ export class App extends Component {
 
 		// add second input file
 		if (this.state.secondFile) {
-			command += " -s " + SECOND_INPUT_FILE;
+			command += " -s " + SECOND_INPUT_FILE_NAME;
 		}
 
 		// add input file
-		command += " " + INPUT_FILE;
+		command += " " + cleanInputFileName;
 
 		// run tn93
 		LOG("Running tn93, command: " + command);
 		const output = await CLI.exec(command);
 		LOG("tn93 output: \n" + output);
 
-		if ((await CLI.ls(OUTPUT_FILE))?.blocks === 0) {
+		if ((await CLI.ls(outputFileName))?.blocks === 0) {
 			LOG("Error running tn93. No output file generated.");
 		} else {
 			this.setState({ tn93Done: true })
 			LOG("Done running tn93, time elapsed: " + (performance.now() - startTime).toFixed(2) + "ms");
+		}
+	}
+
+	deleteOldFiles = async () => {
+		const CLI = this.state.CLI;
+		const files = await CLI.ls('./');
+
+		for (const file of files) {
+			if (file === '.' || file === '..') {
+				continue;
+			}
+			CLI.fs.unlink(file);
 		}
 	}
 
@@ -368,16 +414,27 @@ export class App extends Component {
 	}
 
 	downloadOutput = () => {
-		this.downloadFile(OUTPUT_FILE);
+		this.downloadFile(this.state.outputFileName, this.state.gzipOutput);
 	}
 
-	downloadFile = async (fileName) => {
+	downloadFile = async (fileName, gzip = false) => {
 		const CLI = this.state.CLI;
 		if (!(await CLI.ls(fileName))) {
 			return;
 		}
 
-		const fileBlob = new Blob([await CLI.fs.readFile(fileName, { encoding: 'binary' })], { type: 'application/octet-stream' });
+		const fileData = await CLI.fs.readFile(fileName, { encoding: 'binary' });
+
+		let fileBlob;
+
+		if (gzip) {
+			const gzippedFileData = Pako.gzip(fileData);
+			fileBlob = new Blob([gzippedFileData], { type: 'application/octet-stream' });
+			fileName += ".gz";
+		} else {
+			fileBlob = new Blob([fileData], { type: 'text/plain' });
+		}
+
 		var objectUrl = URL.createObjectURL(fileBlob);
 
 		const element = document.createElement("a");
@@ -412,7 +469,7 @@ export class App extends Component {
 			<div className="app">
 				<h2 className="mt-5 mb-2 w-100 text-center">TN93 Web App</h2>
 				<p className="my-3 w-100 text-center">
-					A web implementation of tn93. For more information and usage, see <a href="https://github.com/veg/tn93" target="_blank" rel="noreferrer">github.com/veg/tn93</a>.<br/>
+					A web implementation of tn93. For more information and usage, see <a href="https://github.com/veg/tn93" target="_blank" rel="noreferrer">github.com/veg/tn93</a>.<br />
 					Created with Biowasm.
 				</p>
 				<div id="content">
@@ -505,7 +562,7 @@ export class App extends Component {
 							</div>
 						</div>
 						<button className={`btn btn-${this.state.file === 'EXAMPLE_DATA' ? 'success' : 'warning'}  mt-3 w-100`} onClick={this.loadExampleData}>Load Example File {this.state.file === 'EXAMPLE_DATA' ? '(Currently Using Example File)' : ''}</button>
-						<button className="btn btn-primary mt-3 w-100" onClick={this.runTN93}>Run TN-93</button>
+						<button className="btn btn-primary mt-3 w-100" onClick={this.runTN93}>Run TN93</button>
 					</div>
 					<div id="output" className={`mt-4 {this.state.expandedContainer === 'output' && 'full-width-container'} ${this.state.expandedContainer === 'input' && 'd-none'}`}>
 						<div id="output-header">
@@ -516,7 +573,15 @@ export class App extends Component {
 						</div>
 						<textarea id="output-console" className="mt-3 px-3 pt-3 pb-4 w-100" placeholder="Output will appear here..." readOnly></textarea>
 						{(this.state.inputChanged && this.state.tn93Done) && <p className="my-2 text-danger text-center">Note: The input has been edited since the last run.</p>}
-						<button className="btn btn-primary mt-3 w-100" onClick={this.downloadOutput} disabled={!this.state.tn93Done}>Download Output</button>
+						<div id="download-container" className="mt-3 w-100">
+							<div className="form-check px-3 py-2 mb-0 border border-primary" id="output-gzip-container" onClick={this.toggleGzipOutput}>
+								<input className="form-check-input me-3" type="checkbox" id="output-gzip" checked={this.state.gzipOutput} onChange={this.toggleGzipOutput} />
+								<label className="form-check-label" htmlFor="output-gzip">
+									Compress Output
+								</label>
+							</div>
+							<button className="btn btn-primary" onClick={this.downloadOutput} disabled={!this.state.tn93Done}>Download Output</button>
+						</div>
 					</div>
 					<div id="error-modal" className={`px-3 py-4 text-danger text-center ${(this.state.errorMessage === undefined || this.state.errorMessage.length === 0) && 'd-none'}`}>
 						{this.state.errorMessage}

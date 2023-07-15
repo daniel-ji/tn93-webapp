@@ -44,6 +44,35 @@ input::placeholder {
 			overflow-wrap: normal;
 			overflow-x: scroll;
 		}
+
+		#download-container {
+			display: inline-flex;
+			justify-content: space-between;
+			align-items: center;
+
+			button {
+				width: 60%;
+			}
+
+			#output-gzip-container {
+				display: inline-flex;
+				justify-content: center;
+				width: 35%;
+				border-radius: 4px;
+				border: 2px solid black !important;
+				cursor: pointer;
+				user-select: none;
+
+				label {
+					cursor: pointer;
+				}
+			}
+
+			#output-gzip {
+				float: none;
+				margin-left: 0;
+			}
+		}
 	}
 
 	#input-header, #output-header {
