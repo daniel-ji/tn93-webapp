@@ -58,6 +58,19 @@ input::placeholder {
 	}
 }
 
+#error-modal {
+	position: absolute;
+	top: 10vh;
+	left: 50%;
+	width: max(50%, 250px);
+	border: 2px solid black;
+	border-radius: 4px;
+	background-color: white;
+	font-weight: bold;
+	transform: translateX(-50%);
+	z-index: 1;
+}
+
 p {
 	margin: 0;
 }
@@ -68,4 +81,15 @@ p {
 
 .full-width-container {
 	width: 100% !important;
+}
+
+@media screen and (max-width: 768px) {
+	#content {
+		display: flex;
+		flex-direction: column;
+	}
+	
+	#input, #output {
+		width: 100% !important;
+	}
 }

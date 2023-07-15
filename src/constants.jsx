@@ -6,6 +6,7 @@ export const LOG = (output) => {
     const textArea = document.getElementById(OUTPUT_ID);
     const date = new Date();
     textArea.value += `${getTimeWithMilliseconds(date)}: ` + output + "\n";
+	textArea.scrollTop = textArea.scrollHeight;
 }
 
 export const getTimeWithMilliseconds = date => {
