@@ -1,7 +1,7 @@
-import { Component, Fragment } from 'react'
+import { Component } from 'react'
 import Pako from 'pako';
 
-import { LOG, EXAMPLE_FILE_NAME, EXAMPLE_FILE_OUTPUT_NAME } from './constants';
+import { LOG, EXAMPLE_FILE_NAME, EXAMPLE_FILE_OUTPUT_NAME, SECOND_INPUT_FILE_NAME } from './constants';
 import './App.scss'
 
 export class App extends Component {
@@ -58,7 +58,7 @@ export class App extends Component {
 	}
 
 	async componentDidMount() {
-		document.addEventListener("wheel", function (event) {
+		document.addEventListener("wheel", () => {
 			if (document.activeElement.type === "number") {
 				document.activeElement.blur();
 			}
@@ -400,7 +400,7 @@ export class App extends Component {
 
 	// helper function to read file as text or arraybuffer and promisify
 	fileReaderReadFile = async (file, asArrayBuffer = false) => {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 			const fileReader = new FileReader();
 			fileReader.onload = () => {
 				resolve(fileReader.result);
