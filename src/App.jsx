@@ -282,14 +282,16 @@ export class App extends Component {
 			outputFileName = EXAMPLE_FILE_OUTPUT_NAME;
 		} else {
 			LOG("Reading input fasta sequence file...")
-			let inputFileData = await this.fileReaderReadFile(this.state.file);
+			let inputFileData;
 			if (this.state.file.name.endsWith(".gz")) {
 				try {
-					inputFileData = Pako.ungzip(inputFileData);
+					inputFileData = Pako.ungzip(await this.fileReaderReadFile(this.state.file, true));
 				} catch (err) {
 					LOG("Error unzipping input fasta sequence file " + this.state.file.name + ".");
 					return;
 				}
+			} else {
+				inputFileData = await this.fileReaderReadFile(this.state.file);
 			}
 
 			cleanInputFileName = this.state.file.name.replace(".gz", "").replace(" ", "_");
@@ -301,14 +303,16 @@ export class App extends Component {
 		// mount second input file
 		if (this.state.secondFile) {
 			LOG("Reading second fasta sequence file...")
-			let secondFileData = await this.fileReaderReadFile(this.state.secondFile);
+			let secondFileData;
 			if (this.state.secondFile.name.endsWith(".gz")) {
 				try {
-					secondFileData = Pako.ungzip(secondFileData);
+					secondFileData = Pako.ungzip(await this.fileReaderReadFile(this.state.secondFile, true));
 				} catch (err) {
 					LOG("Error unzipping second fasta sequence file " + this.state.secondFile.name + ".");
 					return;
 				}
+			} else {
+				secondFileData = await this.fileReaderReadFile(this.state.secondFile);
 			}
 
 			CLI.fs.writeFile(this.state.secondFile.name.replace(".gz", "").replace(" ", "_"), secondFileData);
