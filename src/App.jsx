@@ -568,7 +568,7 @@ export class App extends Component {
 						<button className={`btn btn-${this.state.file === 'EXAMPLE_DATA' ? 'success' : 'warning'}  mt-3 w-100`} onClick={this.loadExampleData}>Load Example File {this.state.file === 'EXAMPLE_DATA' ? '(Currently Using Example File)' : ''}</button>
 						<button className="btn btn-primary mt-3 w-100" onClick={this.runTN93}>Run TN93</button>
 					</div>
-					<div id="output" className={`mt-4 {this.state.expandedContainer === 'output' && 'full-width-container'} ${this.state.expandedContainer === 'input' && 'd-none'}`}>
+					<div id="output" className={`mt-4 ${this.state.expandedContainer === 'output' && 'full-width-container'} ${this.state.expandedContainer === 'input' && 'd-none'}`}>
 						<div id="output-header">
 							<h5 className="my-0">Console</h5>
 							<h4 className="my-0">
