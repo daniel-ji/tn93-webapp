@@ -280,6 +280,9 @@ export class App extends Component {
 			CLI.fs.writeFile(EXAMPLE_FILE_NAME, this.state.exampleData);
 			cleanInputFileName = EXAMPLE_FILE_NAME;
 			outputFileName = EXAMPLE_FILE_OUTPUT_NAME;
+			if (this.state.format === 'hyphy') {
+				outputFileName = outputFileName.replace(".csv", ".txt");
+			}
 		} else {
 			LOG("Reading input fasta sequence file...")
 			let inputFileData;
@@ -296,7 +299,7 @@ export class App extends Component {
 
 			cleanInputFileName = this.state.file.name.replace(".gz", "").replace(" ", "_");
 			CLI.fs.writeFile(cleanInputFileName, inputFileData);
-			outputFileName = (cleanInputFileName.substring(0, cleanInputFileName.indexOf('.')) || cleanInputFileName) + "_pariwise_distances.txt";
+			outputFileName = (cleanInputFileName.substring(0, cleanInputFileName.indexOf('.')) || cleanInputFileName) + "_pariwise_distances." + (this.state.format === 'hyphy' ? 'txt' : 'csv');
 		}
 		this.setState({ outputFileName })
 
@@ -318,7 +321,7 @@ export class App extends Component {
 			CLI.fs.writeFile(this.state.secondFile.name.replace(".gz", "").replace(" ", "_"), secondFileData);
 		}
 
-		// TODO: better extension? 
+		// TODO: hyphy extension? 
 		let command = "tn93 -o " + outputFileName; 
 
 		// add threshold
